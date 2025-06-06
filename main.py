@@ -57,11 +57,11 @@ elif menu == "충전소 지도":
     for charger in chargers:
         tooltip = charger["name"]
         popup_html = f"""
-        <div style="font-weight:bold; margin-bottom:6px;">{charger['name']}</div>
-        <div style="margin-bottom:4px;">상태: {charger['status']}</div>
-        <div style="margin-bottom:4px;">가격: {charger['price']}</div>
-        <div style="margin-bottom:4px;">점거비용: {charger['idle_fee']}</div>
-        <div>무료 주차: {charger['free_parking']}</div>
+        <div style="font-weight:bold; margin-bottom:8px;">{charger['name']}</div>
+        <div style="margin-bottom:6px;">⚡ 상태: {charger['status']}</div>
+        <div style="margin-bottom:6px;">💰 가격: {charger['price']}</div>
+        <div style="margin-bottom:6px;">💸 점거비용: {charger['idle_fee']}</div>
+        <div>🅿️ 무료 주차: {charger['free_parking']}</div>
         """
         folium.Marker(
             [charger["lat"], charger["lng"]],
