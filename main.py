@@ -34,7 +34,8 @@ def load_data(url):
     df[['위도', '경도']] = df['위도경도'].str.split(",", expand=True).astype(float)
     return df
 
-chargers = load_data(csv_url).to_dict(orient="records")
+df = load_data(csv_url)
+chargers = df.to_dict(orient="records")
 
 if menu == "홈":
     st.title("🚗 전기차 충전소 위치 확인 웹앱에 오신 것을 환영합니다!")
