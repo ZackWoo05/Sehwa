@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 import folium
 from streamlit_folium import st_folium
+import geocoder
 
 st.set_page_config(page_title="전기차 충전소 지도", layout="wide")
 
@@ -48,7 +49,10 @@ elif menu == "충전소 지도":
     vehicle_options = ["전체"] + list(vehicle_info.keys())
     selected_vehicle = st.selectbox("🚘 내 차량을 선택하세요", vehicle_options)
 
-    map_center = [df['위도'].mean(), df['경도'].mean()]
+    # 실제 사용자 IP 기반 위치 추정
+    g = geocoder.ip('me')
+    map_center = g.latlng if g.ok else [37.5665, 126.9780]  # fallback: 서울시청
+
     m = folium.Map(location=map_center, zoom_start=11)
 
     folium.Marker(
