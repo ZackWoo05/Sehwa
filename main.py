@@ -3,8 +3,7 @@ import streamlit as st
 import pandas as pd
 import folium
 from streamlit_folium import st_folium
-from geopy.geocoders import Nominatim
-from geopy.exc import GeocoderTimedOut, GeocoderServiceError
+import requests
 
 st.set_page_config(page_title="전기차 충전소 지도", layout="wide")
 
@@ -35,6 +34,23 @@ def load_data(url):
     df[['위도', '경도']] = df['위도경도'].str.split(",", expand=True).astype(float)
     return df
 
+def kakao_geocode(address):
+    api_key = "8e3a592f2b86c799c3be4f26f492a5d5"
+    url = "https://dapi.kakao.com/v2/local/search/address.json"
+    headers = {"Authorization": f"KakaoAK {api_key}"}
+    params = {"query": address}
+    try:
+        response = requests.get(url, headers=headers, params=params, timeout=5)
+        if response.status_code == 200:
+            result = response.json()
+            if result['documents']:
+                lat = float(result['documents'][0]['y'])
+                lng = float(result['documents'][0]['x'])
+                return lat, lng
+    except Exception as e:
+        st.error(f"❌ 주소 변환 실패: {e}")
+    return None, None
+
 df = load_data(csv_url)
 chargers = df.to_dict(orient="records")
 
@@ -47,17 +63,10 @@ elif menu == "충전소 지도":
     st.markdown("📍 위치를 입력하거나 차량을 선택하면 맞춤 정보를 확인할 수 있습니다.")
 
     address = st.text_input("📍 위치를 입력하세요 (예: 래미안 원펜타스)", "서울특별시 서초구 반포동")
-    location = None
-    if address:
-        geolocator = Nominatim(user_agent="ev_map")
-        try:
-            location = geolocator.geocode(address, timeout=5)
-        except (GeocoderTimedOut, GeocoderServiceError) as e:
-            st.error(f"❌ 위치 검색 중 오류 발생: {e}")
-            location = None
+    lat, lng = kakao_geocode(address) if address else (None, None)
 
-    if location:
-        map_center = [location.latitude, location.longitude]
+    if lat and lng:
+        map_center = [lat, lng]
     else:
         st.warning("⚠️ 해당 주소를 찾을 수 없습니다. 기본 위치(서울)로 설정됩니다.")
         map_center = [37.5665, 126.9780]
