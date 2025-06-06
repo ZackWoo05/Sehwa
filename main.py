@@ -3,7 +3,7 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 
-# 페이지 제목
+# 페이지 설정
 st.set_page_config(page_title="전기차 충전소 지도", layout="wide")
 
 # 사이드바 메뉴
@@ -17,11 +17,11 @@ elif menu == "충전소 지도":
     st.title("🔌 전기차 충전소 위치 확인")
     st.markdown("📍 현재 위치를 기준으로 반경 5km 이내 충전소를 확인해보세요!")
 
-    # 현재 위치 (예시: 서울 시청)
+    # 현재 위치 (서울 시청)
     current_lat = 37.5665
     current_lng = 126.9780
 
-    # 충전소 데이터 (예시)
+    # 예시 충전소 데이터
     chargers = [
         {
             "name": "서울시청 충전소 📍",
@@ -57,20 +57,22 @@ elif menu == "충전소 지도":
     for charger in chargers:
         tooltip = charger["name"]
         popup_html = f"""
-        <b>{charger['name']}</b><br>
-        ⚡ {charger['status']}<br>
-        💰 {charger['price']}<br>
-        💸 {charger['idle_fee']}<br>
-        🅿️ {charger['free_parking']}
+        <div style="min-width:180px; max-width:250px; font-size:13px; line-height:1.4; white-space:nowrap;">
+            <strong>{charger['name']}</strong><br>
+            ⚡ 상태: {charger['status']}<br>
+            💰 가격: {charger['price']}<br>
+            💸 점거비용: {charger['idle_fee']}<br>
+            🅿️ 무료 주차: {charger['free_parking']}
+        </div>
         """
         folium.Marker(
             [charger["lat"], charger["lng"]],
             tooltip=tooltip,
-            popup=popup_html,
+            popup=folium.Popup(popup_html, max_width=250),
             icon=folium.Icon(color="green", icon="flash")
         ).add_to(m)
 
-    # 지도 표시
+    # 지도 출력
     st_folium(m, width=900, height=600)
 
 elif menu == "앱 정보":
