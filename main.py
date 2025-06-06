@@ -28,62 +28,50 @@ chargers = [
     }
 ]
 
-menu = st.sidebar.selectbox("메뉴 선택", ["홈", "충전소 지도", "앱 정보"])
+# 기본 위치
+default_location = [37.5665, 126.9780]
 
-if menu == "홈":
-    st.title("🚗 전기차 충전소 위치 확인 웹앱에 오신 것을 환영합니다!")
-    st.write("왼쪽 메뉴에서 원하는 페이지를 선택하세요.")
+st.title("🚗 전기차 충전소 지도")
 
-elif menu == "충전소 지도":
-    st.title("🔌 충전소 지도")
+# 좌우 레이아웃 분할 (왼쪽: 지도, 오른쪽: 상세 정보)
+col1, col2 = st.columns([3, 1])
 
-    # 기본 위치 (예시)
-    default_location = [37.5665, 126.9780]
+with col2:
+    st.header("충전소 선택")
+    selected_name = st.selectbox(
+        "충전소 목록",
+        options=[charger["name"] for charger in chargers]
+    )
 
-    # 좌우 레이아웃: 지도 + 상세 정보
-    col1, col2 = st.columns([3, 1])
+    # 선택된 충전소 정보 표시
+    selected = next(charger for charger in chargers if charger["name"] == selected_name)
 
-    with col2:
-        st.header("충전소 선택")
-        selected_name = st.selectbox(
-            "충전소 목록",
-            options=[charger["name"] for charger in chargers]
-        )
+    st.markdown(f"""
+    ### {selected['name']}
+    - **상태:** {selected['status']}
+    - **가격:** {selected['price']}
+    - **점거비용:** {selected['idle_fee']}
+    - **무료 주차:** {selected['free_parking']}
+    """)
 
-        selected = next(charger for charger in chargers if charger["name"] == selected_name)
+with col1:
+    # 지도 생성, 선택된 충전소 위치로 이동
+    m = folium.Map(location=[selected['lat'], selected['lng']], zoom_start=16)
 
-        st.markdown(f"""
-        ### {selected['name']}
-        - **상태:** {selected['status']}
-        - **가격:** {selected['price']}
-        - **점거비용:** {selected['idle_fee']}
-        - **무료 주차:** {selected['free_parking']}
-        """)
+    # 현재 위치 마커 (예시 고정)
+    folium.Marker(
+        default_location,
+        tooltip="현재 위치 📍",
+        icon=folium.Icon(color="blue", icon="star")
+    ).add_to(m)
 
-    with col1:
-        m = folium.Map(location=[selected['lat'], selected['lng']], zoom_start=16)
-
+    # 충전소 마커 모두 표시
+    for charger in chargers:
+        color = "green" if charger["name"] == selected_name else "gray"
         folium.Marker(
-            default_location,
-            tooltip="현재 위치 📍",
-            icon=folium.Icon(color="blue", icon="star")
+            [charger["lat"], charger["lng"]],
+            tooltip=charger["name"],
+            icon=folium.Icon(color=color, icon="flash")
         ).add_to(m)
 
-        for charger in chargers:
-            color = "green" if charger["name"] == selected_name else "gray"
-            folium.Marker(
-                [charger["lat"], charger["lng"]],
-                tooltip=charger["name"],
-                icon=folium.Icon(color=color, icon="flash")
-            ).add_to(m)
-
-        st_folium(m, width=800, height=600)
-
-elif menu == "앱 정보":
-    st.title("앱 정보")
-    st.markdown("""
-    - 제작 동기: 전기차 충전소 위치와 상태를 한눈에 보고 싶어서  
-    - 주요 기능: 위치 기반 충전소 지도 표시, 상태 및 가격 정보 팝업 제공  
-    - 개발 환경: Python, Streamlit, Folium  
-    - 팀원: 홍길동, 김철수, 이영희  
-    """)
+    st_folium(m, width=800, height=600)
