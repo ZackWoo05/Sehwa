@@ -54,3 +54,14 @@ def kakao_geocode(address):
     except Exception as e:
         st.error(f"❌ 주소 변환 실패: {e}")
     return None, None
+
+# 지도 중심 설정 처리
+address = st.text_input("📍 위치를 입력하세요 (예: 래미안 원펜타스)", "")
+default_lat, default_lng = 37.5665, 126.9780
+lat, lng = kakao_geocode(address) if address else (None, None)
+if lat is not None and lng is not None:
+    map_center = [lat, lng]
+else:
+    if address:
+        st.warning("❌ 유효한 주소가 아니거나 지도에서 찾을 수 없습니다. 기본 위치(서울 시청)로 설정합니다.")
+    map_center = [default_lat, default_lng]
