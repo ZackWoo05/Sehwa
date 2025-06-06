@@ -7,7 +7,7 @@ from streamlit_folium import st_folium
 st.set_page_config(page_title="전기차 충전소 지도", layout="wide")
 
 # 사이드바 메뉴
-menu = st.sidebar.radio("메뉴 선택", ["홈", "충전소 지도", "앱 정보"])
+menu = st.sidebar.radio("메뉴 선택", ["홈", "충전소 지도", "충전기별 지원 차량", "앱 정보"])
 
 if menu == "홈":
     st.title("🚗 전기차 충전소 위치 확인 웹앱에 오신 것을 환영합니다!")
@@ -17,11 +17,9 @@ elif menu == "충전소 지도":
     st.title("🔌 전기차 충전소 위치 확인")
     st.markdown("📍 현재 위치를 기준으로 반경 5km 이내 충전소를 확인해보세요!")
 
-    # 현재 위치 (서울 시청)
     current_lat = 37.5665
     current_lng = 126.9780
 
-    # 충전소 데이터 (충전기 타입 포함)
     chargers = [
         {
             "name": "서울시청 충전소 📍",
@@ -45,17 +43,14 @@ elif menu == "충전소 지도":
         }
     ]
 
-    # 지도 생성
     m = folium.Map(location=[current_lat, current_lng], zoom_start=15)
 
-    # 현재 위치 마커
     folium.Marker(
         [current_lat, current_lng],
         tooltip="현재 위치 📍",
         icon=folium.Icon(color="blue", icon="star")
     ).add_to(m)
 
-    # 충전소 마커 추가
     for charger in chargers:
         tooltip = charger["name"]
         popup_html = f"""
@@ -75,8 +70,40 @@ elif menu == "충전소 지도":
             icon=folium.Icon(color="green", icon="flash")
         ).add_to(m)
 
-    # 지도 출력
     st_folium(m, width=900, height=600)
+
+elif menu == "충전기별 지원 차량":
+    st.title("🚘 충전기별 지원 차량 안내")
+
+    # 충전기 타입 선택
+    charger_type = st.selectbox("충전기 타입을 선택하세요", ["DC콤보", "AC완속", "차데모"])
+
+    # 충전기별 차량 목록
+    vehicle_dict = {
+        "DC콤보": [
+            "테슬라 모델 3/Y (어댑터 필요)",
+            "현대 아이오닉5/6",
+            "기아 EV6",
+            "폭스바겐 ID.4",
+            "BMW i4, iX",
+        ],
+        "AC완속": [
+            "르노 조에",
+            "쉐보레 볼트 EV",
+            "현대 코나 EV",
+            "기아 니로 EV",
+            "테슬라 전 모델 (변환 어댑터 필요)",
+        ],
+        "차데모": [
+            "닛산 리프",
+            "기아 쏘울 EV (구형)",
+            "미쓰비시 아웃랜더 PHEV",
+        ]
+    }
+
+    st.markdown(f"### {charger_type} 지원 차량 목록")
+    for car in vehicle_dict.get(charger_type, []):
+        st.markdown(f"- {car}")
 
 elif menu == "앱 정보":
     st.title("앱 정보")
