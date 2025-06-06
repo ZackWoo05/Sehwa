@@ -35,7 +35,7 @@ csv_url = "https://raw.githubusercontent.com/ZackWoo05/Sehwa/04a6d4ca291a442e85e
 @st.cache_data
 def load_data(url):
     df = pd.read_csv(url)
-    df[['위도', '경도']] = df['위도경도'].str.split(",", expand=True).astype(float)
+    df[['위도', '경도']] = df[['위도', '경도']].astype(float)
     return df
 
 def kakao_geocode(address):
