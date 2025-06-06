@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 import folium
 from streamlit_folium import st_folium
-import geocoder
+import requests
 
 st.set_page_config(page_title="전기차 충전소 지도", layout="wide")
 
@@ -35,6 +35,18 @@ def load_data(url):
     df[['위도', '경도']] = df['위도경도'].str.split(",", expand=True).astype(float)
     return df
 
+@st.cache_data
+def get_ip_location():
+    try:
+        response = requests.get("https://ipinfo.io/json")
+        if response.status_code == 200:
+            data = response.json()
+            loc = data["loc"].split(',')
+            return [float(loc[0]), float(loc[1])]
+    except:
+        pass
+    return [37.5665, 126.9780]  # fallback to Seoul
+
 df = load_data(csv_url)
 chargers = df.to_dict(orient="records")
 
@@ -49,10 +61,7 @@ elif menu == "충전소 지도":
     vehicle_options = ["전체"] + list(vehicle_info.keys())
     selected_vehicle = st.selectbox("🚘 내 차량을 선택하세요", vehicle_options)
 
-    # 실제 사용자 IP 기반 위치 추정
-    g = geocoder.ip('me')
-    map_center = g.latlng if g.ok else [37.5665, 126.9780]  # fallback: 서울시청
-
+    map_center = get_ip_location()
     m = folium.Map(location=map_center, zoom_start=11)
 
     folium.Marker(
