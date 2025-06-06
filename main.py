@@ -43,16 +43,19 @@ if menu == "홈":
 
 elif menu == "충전소 지도":
     st.title("🔌 전기차 충전소 위치 확인")
-    st.markdown("📍 차량을 선택하면 해당 차량에 맞는 충전소만 지도에 표시됩니다.")
+    st.markdown("📍 위치를 입력하거나 차량을 선택하면 맞춤 정보를 확인할 수 있습니다.")
 
     address = st.text_input("📍 위치를 입력하세요 (예: 래미안 원펜타스)", "서울특별시 서초구 반포동")
-    geolocator = Nominatim(user_agent="ev_map")
-    location = geolocator.geocode(address)
+    if address:
+        geolocator = Nominatim(user_agent="ev_map")
+        location = geolocator.geocode(address)
+    else:
+        location = None
 
     if location:
         map_center = [location.latitude, location.longitude]
     else:
-        st.error("해당 주소를 찾을 수 없습니다. 기본 위치로 설정됩니다.")
+        st.warning("⚠️ 해당 주소를 찾을 수 없습니다. 기본 위치(서울)로 설정됩니다.")
         map_center = [37.5665, 126.9780]
 
     vehicle_options = ["전체"] + list(vehicle_info.keys())
