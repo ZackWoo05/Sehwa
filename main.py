@@ -47,9 +47,20 @@ elif menu == "충전소 지도":
 
     st.warning("브라우저의 위치 접근을 허용하셔야 정확한 위치 기반 지도가 표시됩니다. 위치 접근 허용 팝업이 보이면 '허용'을 선택해 주세요.")
 
-    location = streamlit_js_eval(js_expressions="navigator.geolocation.getCurrentPosition", key="user_location")
-    if location and "coords" in location:
-        map_center = [location["coords"]["latitude"], location["coords"]["longitude"]]
+    location = streamlit_js_eval(
+        js_expressions="""
+        new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(
+                pos => resolve({latitude: pos.coords.latitude, longitude: pos.coords.longitude}),
+                err => reject(err)
+            )
+        })
+        """,
+        key="user_location"
+    )
+
+    if location and "latitude" in location:
+        map_center = [location["latitude"], location["longitude"]]
     else:
         map_center = [37.5665, 126.9780]
 
