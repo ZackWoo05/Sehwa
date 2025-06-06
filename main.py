@@ -65,3 +65,30 @@ else:
     if address:
         st.warning("❌ 유효한 주소가 아니거나 지도에서 찾을 수 없습니다. 기본 위치(서울 시청)로 설정합니다.")
     map_center = [default_lat, default_lng]
+
+if menu == "충전소 지도":
+    st.title("🔌 전기차 충전소 위치 확인")
+    df = load_data(csv_url)
+
+    m = folium.Map(location=map_center, zoom_start=14)
+    folium.Marker(
+        location=map_center,
+        tooltip="검색된 위치 📍",
+        icon=folium.Icon(color="blue", icon="search")
+    ).add_to(m)
+
+    for i, row in df.iterrows():
+        folium.Marker(
+            [row["위도"], row["경도"]],
+            tooltip=row["충전소명"],
+            popup=folium.Popup(f"""
+                <b>{row['충전소명']}</b><br>
+                📍 주소: {row['주소']}<br>
+                ⚡ 충전기 타입: {row['충전기타입']}<br>
+                💰 요금: {row['이용요금']}<br>
+                🅿️ 주차: {row['주차여부']}<br>
+            """, max_width=300),
+            icon=folium.Icon(color="green", icon="flash")
+        ).add_to(m)
+
+    st_folium(m, width=900, height=600)
