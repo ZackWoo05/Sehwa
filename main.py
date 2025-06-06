@@ -21,7 +21,7 @@ elif menu == "충전소 지도":
     current_lat = 37.5665
     current_lng = 126.9780
 
-    # 예시 충전소 데이터
+    # 충전소 데이터 (충전기 타입 포함)
     chargers = [
         {
             "name": "서울시청 충전소 📍",
@@ -30,7 +30,8 @@ elif menu == "충전소 지도":
             "status": "충전 가능 ⚡️",
             "price": "300원/kWh 🔋",
             "idle_fee": "점거비용 있음 💸",
-            "free_parking": "무료 주차 가능 🅿️"
+            "free_parking": "무료 주차 가능 🅿️",
+            "type": "DC콤보, AC완속"
         },
         {
             "name": "을지로입구 충전소 📍",
@@ -39,7 +40,8 @@ elif menu == "충전소 지도":
             "status": "충전 중 🔌",
             "price": "250원/kWh 🔋",
             "idle_fee": "점거비용 없음 ✅",
-            "free_parking": "무료 주차 불가 ❌"
+            "free_parking": "무료 주차 불가 ❌",
+            "type": "차데모"
         }
     ]
 
@@ -59,6 +61,7 @@ elif menu == "충전소 지도":
         popup_html = f"""
         <div style="min-width:180px; max-width:250px; font-size:13px; line-height:1.4; white-space:nowrap;">
             <strong>{charger['name']}</strong><br>
+            🔌 충전기 타입: {charger['type']}<br>
             ⚡ 상태: {charger['status']}<br>
             💰 가격: {charger['price']}<br>
             💸 점거비용: {charger['idle_fee']}<br>
