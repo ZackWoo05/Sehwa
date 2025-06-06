@@ -4,6 +4,7 @@ import pandas as pd
 import folium
 from streamlit_folium import st_folium
 from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 
 st.set_page_config(page_title="전기차 충전소 지도", layout="wide")
 
@@ -46,11 +47,14 @@ elif menu == "충전소 지도":
     st.markdown("📍 위치를 입력하거나 차량을 선택하면 맞춤 정보를 확인할 수 있습니다.")
 
     address = st.text_input("📍 위치를 입력하세요 (예: 래미안 원펜타스)", "서울특별시 서초구 반포동")
+    location = None
     if address:
         geolocator = Nominatim(user_agent="ev_map")
-        location = geolocator.geocode(address)
-    else:
-        location = None
+        try:
+            location = geolocator.geocode(address, timeout=5)
+        except (GeocoderTimedOut, GeocoderServiceError) as e:
+            st.error(f"❌ 위치 검색 중 오류 발생: {e}")
+            location = None
 
     if location:
         map_center = [location.latitude, location.longitude]
