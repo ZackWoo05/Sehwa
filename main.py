@@ -1,6 +1,8 @@
+// 파일명: EVChargerMap.jsx
 import React, { useEffect, useState } from "react";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
 
+// 더미 충전소 데이터
 const dummyChargers = [
   {
     id: 1,
@@ -28,6 +30,7 @@ export default function EVChargerMap() {
   const [location, setLocation] = useState({ lat: 0, lng: 0 });
   const [loaded, setLoaded] = useState(false);
 
+  // 현재 위치 가져오기
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -52,6 +55,7 @@ export default function EVChargerMap() {
           style={{ width: "100%", height: "100%" }}
           level={4}
         >
+          {/* 현재 위치 마커 */}
           <MapMarker
             position={location}
             image={{
@@ -60,6 +64,7 @@ export default function EVChargerMap() {
             }}
           />
 
+          {/* 더미 충전소 마커 */}
           {dummyChargers.map((charger) => (
             <MapMarker
               key={charger.id}
