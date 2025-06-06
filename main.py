@@ -7,7 +7,7 @@ st.set_page_config(page_title="전기차 충전소 지도", layout="wide")
 
 menu = st.sidebar.radio("메뉴 선택", ["홈", "충전소 지도", "차량별 충전 호환정보", "앱 정보"])
 
-# 🔌 차량 정보 데이터 (상세 사양 포함)
+# 🔌 차량 정보 데이터
 vehicle_info = {
     "테슬라 모델 3": {
         "충전기": ["DC콤보", "AC완속"],
@@ -39,7 +39,7 @@ vehicle_info = {
     }
 }
 
-# 🚘 충전소 예시 데이터
+# 🚘 충전소 데이터
 chargers = [
     {
         "name": "서울시청 충전소 📍",
@@ -71,10 +71,11 @@ elif menu == "충전소 지도":
     st.title("🔌 전기차 충전소 위치 확인")
     st.markdown("📍 차량을 선택하면 해당 차량에 맞는 충전소만 지도에 표시됩니다.")
 
-    # 차량 선택
-    selected_vehicle = st.selectbox("🚘 내 차량을 선택하세요", list(vehicle_info.keys()))
-    supported_chargers = vehicle_info[selected_vehicle]["충전기"]
+    # 차량 선택 옵션 (전체 추가)
+    vehicle_options = ["전체"] + list(vehicle_info.keys())
+    selected_vehicle = st.selectbox("🚘 내 차량을 선택하세요", vehicle_options)
 
+    # 현재 위치 기준 지도 생성
     current_lat, current_lng = 37.5665, 126.9780
     m = folium.Map(location=[current_lat, current_lng], zoom_start=15)
 
@@ -85,10 +86,12 @@ elif menu == "충전소 지도":
         icon=folium.Icon(color="blue", icon="star")
     ).add_to(m)
 
-    # 호환되는 충전소만 표시
+    # 🔎 마커 필터링
     for charger in chargers:
         charger_types = [t.strip() for t in charger["type"].split(",")]
-        if any(ct in supported_chargers for ct in charger_types):
+
+        # 전체 선택 시 모든 충전소 표시
+        if selected_vehicle == "전체" or any(ct in vehicle_info.get(selected_vehicle, {}).get("충전기", []) for ct in charger_types):
             popup_html = f"""
             <div style="min-width:180px; max-width:250px; font-size:13px; line-height:1.4; white-space:nowrap;">
                 <strong>{charger['name']}</strong><br>
@@ -111,21 +114,25 @@ elif menu == "충전소 지도":
 elif menu == "차량별 충전 호환정보":
     st.title("🚘 차량별 충전 호환 정보")
 
-    selected_vehicle = st.selectbox("차량 선택", list(vehicle_info.keys()))
-    info = vehicle_info[selected_vehicle]
+    vehicle_options = ["전체"] + list(vehicle_info.keys())
+    selected_vehicle = st.selectbox("차량 선택", vehicle_options)
 
-    st.markdown(f"### ✅ {selected_vehicle} 제원 정보")
-    st.write(f"🔌 호환 충전기: {', '.join(info['충전기'])}")
-    st.write(f"🔧 어댑터 필요: {'예' if info['어댑터 필요'] else '아니오'}")
-    st.write(f"🔋 배터리 용량: {info['배터리']}")
-    st.write(f"🚗 1회 주행거리: {info['주행거리']}")
-    st.write(f"⚡ 예상 충전 시간: {info['충전시간']}")
+    if selected_vehicle == "전체":
+        st.info("전체를 선택하면 호환 정보가 제공되지 않습니다. 특정 차량을 선택해 주세요.")
+    else:
+        info = vehicle_info[selected_vehicle]
+        st.markdown(f"### ✅ {selected_vehicle} 제원 정보")
+        st.write(f"🔌 호환 충전기: {', '.join(info['충전기'])}")
+        st.write(f"🔧 어댑터 필요: {'예' if info['어댑터 필요'] else '아니오'}")
+        st.write(f"🔋 배터리 용량: {info['배터리']}")
+        st.write(f"🚗 1회 주행거리: {info['주행거리']}")
+        st.write(f"⚡ 예상 충전 시간: {info['충전시간']}")
 
 elif menu == "앱 정보":
     st.title("앱 정보")
     st.markdown("""
     - 제작 동기: 전기차 충전소 위치와 상태를 한눈에 확인하기 위해 개발했습니다.  
-    - 주요 기능: 위치 기반 충전소 지도 표시, 차량별 호환 충전소 필터링, 제원 정보 제공  
+    - 주요 기능: 위치 기반 충전소 지도 표시, 차량별 호환 충전소 필터링, 상세 제원 제공  
     - 개발 환경: Python, Streamlit, Folium  
     - 팀원: 홍길동, 김철수, 이영희  
     """)
