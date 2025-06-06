@@ -6,16 +6,12 @@ from streamlit_folium import st_folium
 import requests
 import urllib3
 
-# SSL 경고 무시
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# 페이지 기본 설정
 st.set_page_config(page_title="전기차 충전소 지도", layout="wide")
 
-# 사이드바 메뉴
 menu = st.sidebar.radio("메뉴 선택", ["홈", "충전소 지도", "차량별 충전 호환정보", "앱 정보"])
 
-# 차량 정보 사전
 vehicle_info = {
     "테슬라 모델 3": {"충전기": ["DC콤보", "AC완속"], "어댑터 필요": True, "배터리": "57.5~82 kWh", "주행거리": "400~500km", "충전시간": "30분"},
     "테슬라 모델 S": {"충전기": ["DC콤보", "AC완속"], "어댑터 필요": True, "배터리": "95~100 kWh", "주행거리": "560~650km", "충전시간": "30분"},
@@ -32,22 +28,18 @@ vehicle_info = {
     "닛산 리프": {"충전기": ["차데모", "AC완속"], "어댑터 필요": False, "배터리": "40~62 kWh", "주행거리": "250~350km", "충전시간": "40분"}
 }
 
-# CSV 파일 경로
 csv_url = "https://raw.githubusercontent.com/ZackWoo05/Sehwa/main/chargerinfo_sample.csv"
 
 @st.cache_data
 def load_data(url):
     df = pd.read_csv(url)
-
-    # 컬럼명 일치시키기 (위도/경도 → Latitude/Longitude)
-    df.rename(columns={"Latitude": "위도", "Longitude": "경도"}, inplace=True)
+    df[['위도', '경도']] = df['위도경도'].str.split(',', expand=True)
     df['위도'] = df['위도'].astype(str).str.strip().astype(float)
     df['경도'] = df['경도'].astype(str).str.strip().astype(float)
     return df
 
-# 카카오 주소 → 좌표 변환
 def kakao_geocode(address):
-    api_key = "8e3a592f2b86c799c3be4f26f492a5d5"  # 개인 키는 보안 주의
+    api_key = "8e3a592f2b86c799c3be4f26f492a5d5"
     url = "https://dapi.kakao.com/v2/local/search/address.json"
     headers = {"Authorization": f"KakaoAK {api_key}"}
     params = {"query": address}
@@ -63,14 +55,19 @@ def kakao_geocode(address):
         st.error(f"❌ 주소 변환 실패: {e}")
     return None, None
 
-# 위치 입력
+# 입력 주소 기준 지도 중심
 address = st.text_input("📍 위치를 입력하세요 (예: 래미안 원펜타스)", "")
 default_lat, default_lng = 37.5665, 126.9780
 lat, lng = kakao_geocode(address) if address else (None, None)
 map_center = [lat, lng] if lat and lng else [default_lat, default_lng]
+if address and (lat is None or lng is None):
+    st.warning("❌ 유효한 주소가 아니거나 찾을 수 없습니다. 기본 위치(서울 시청)로 설정합니다.")
 
-# 지도 출력
-if menu == "충전소 지도":
+if menu == "홈":
+    st.title("🚗 전기차 충전소 위치 확인 웹앱")
+    st.write("왼쪽 메뉴에서 기능을 선택하세요.")
+
+elif menu == "충전소 지도":
     st.title("🔌 전기차 충전소 위치 확인")
     df = load_data(csv_url)
 
@@ -94,37 +91,27 @@ if menu == "충전소 지도":
     st_folium(m, width=900, height=600)
 
 elif menu == "차량별 충전 호환정보":
-    st.title("🚘 차량별 충전 호환 정보")
+    st.title("🚙 차량별 충전 호환정보")
     selected_car = st.selectbox("차량을 선택하세요", ["전체 보기"] + list(vehicle_info.keys()))
     if selected_car == "전체 보기":
-        for car, info in vehicle_info.items():
-            st.subheader(f"🚗 {car}")
-            st.write(f"🔌 호환 충전기: {', '.join(info['충전기'])}")
-            st.write(f"🔄 어댑터 필요 여부: {'필요' if info['어댑터 필요'] else '불필요'}")
-            st.write(f"🔋 배터리 용량: {info['배터리']}")
-            st.write(f"📏 주행 거리: {info['주행거리']}")
-            st.write(f"⚡ 충전 시간: {info['충전시간']}")
-            st.markdown("---")
+        st.write("전체 차량 정보:")
+        st.dataframe(pd.DataFrame(vehicle_info).T)
     else:
         info = vehicle_info[selected_car]
-        st.subheader(f"🚗 {selected_car}")
-        st.write(f"🔌 호환 충전기: {', '.join(info['충전기'])}")
-        st.write(f"🔄 어댑터 필요 여부: {'필요' if info['어댑터 필요'] else '불필요'}")
-        st.write(f"🔋 배터리 용량: {info['배터리']}")
-        st.write(f"📏 주행 거리: {info['주행거리']}")
-        st.write(f"⚡ 충전 시간: {info['충전시간']}")
+        st.markdown(f"""
+        ### 🚗 {selected_car}
+        - 충전기: {", ".join(info["충전기"])}
+        - 어댑터 필요 여부: {"필요" if info["어댑터 필요"] else "불필요"}
+        - 배터리 용량: {info["배터리"]}
+        - 1회 주행거리: {info["주행거리"]}
+        - 급속 충전시간: {info["충전시간"]}
+        """)
 
 elif menu == "앱 정보":
     st.title("ℹ️ 앱 정보")
     st.markdown("""
-    - **제작 동기**: 전기차 이용자들을 위한 충전소 위치 및 정보 제공  
-    - **주요 기능**:  
-        - 주소 검색 기반 지도 이동  
-        - 충전소 정보 팝업 제공  
-        - 차량별 충전 호환 정보 제공  
-    - **사용 기술**: Streamlit, Folium, Kakao Map API  
+    - 목적: 전기차 충전소 위치 및 차량별 호환 정보 제공  
+    - 기능: 위치 기반 충전소 지도, 차량 충전 호환표, 주소 검색 기능  
+    - 기술 스택: Python, Streamlit, Pandas, Folium, Kakao Map API  
+    - 개발자: ZackWoo05
     """)
-
-else:
-    st.title("🚗 전기차 충전소 위치 확인 웹앱에 오신 것을 환영합니다!")
-    st.write("왼쪽 메뉴에서 기능을 선택하세요.")
