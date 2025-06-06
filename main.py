@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 import folium
 from streamlit_folium import st_folium
-from streamlit_js_eval import streamlit_js_eval
+from geopy.geocoders import Nominatim
 
 st.set_page_config(page_title="전기차 충전소 지도", layout="wide")
 
@@ -45,23 +45,14 @@ elif menu == "충전소 지도":
     st.title("🔌 전기차 충전소 위치 확인")
     st.markdown("📍 차량을 선택하면 해당 차량에 맞는 충전소만 지도에 표시됩니다.")
 
-    st.warning("브라우저의 위치 접근을 허용하셔야 정확한 위치 기반 지도가 표시됩니다. 위치 접근 허용 팝업이 보이면 '허용'을 선택해 주세요.")
+    address = st.text_input("📍 위치를 입력하세요 (예: 래미안 원펜타스)", "서울특별시 서초구 반포동")
+    geolocator = Nominatim(user_agent="ev_map")
+    location = geolocator.geocode(address)
 
-    location = streamlit_js_eval(
-        js_expressions="""
-        new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(
-                pos => resolve({latitude: pos.coords.latitude, longitude: pos.coords.longitude}),
-                err => reject(err)
-            )
-        })
-        """,
-        key="user_location"
-    )
-
-    if location and "latitude" in location:
-        map_center = [location["latitude"], location["longitude"]]
+    if location:
+        map_center = [location.latitude, location.longitude]
     else:
+        st.error("해당 주소를 찾을 수 없습니다. 기본 위치로 설정됩니다.")
         map_center = [37.5665, 126.9780]
 
     vehicle_options = ["전체"] + list(vehicle_info.keys())
