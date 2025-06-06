@@ -8,8 +8,8 @@ st.set_page_config(page_title="전기차 충전소 지도", layout="wide")
 
 menu = st.sidebar.radio("메뉴 선택", ["홈", "충전소 지도", "앱 정보"])
 
-# GitHub 파일 URL (raw 주소로 바꿔주세요)
-excel_url = "https://raw.githubusercontent.com/USERNAME/REPO/main/chargerinfo.xlsx"
+# GitHub의 raw 엑셀 파일 주소
+excel_url = "https://raw.githubusercontent.com/ZackWoo05/Sehwa/a1a96c6fe9c89d4899d4e5618ad8df06a3ae435e/chargerinfo.xlsx"
 
 @st.cache_data
 def load_data(url):
@@ -27,7 +27,7 @@ elif menu == "충전소 지도":
     st.title("🔌 전기차 충전소 위치 확인")
     st.markdown("📍 GitHub에서 불러온 충전소 위치를 지도에 표시합니다.")
 
-    # 기본 지도 위치
+    # 지도 중심 설정
     map_center = [df['위도'].mean(), df['경도'].mean()]
     m = folium.Map(location=map_center, zoom_start=11)
 
@@ -54,7 +54,7 @@ elif menu == "충전소 지도":
 elif menu == "앱 정보":
     st.title("앱 정보")
     st.markdown("""
-    - 데이터 출처: GitHub에 업로드한 chargerinfo.xlsx  
-    - 주요 기능: 전국 충전소 위치 지도 표시, 충전기 정보 팝업  
-    - 기술 스택: Python, Streamlit, Pandas, Folium  
+    - 데이터 출처: GitHub 저장소의 chargerinfo.xlsx  
+    - 주요 기능: 충전소 지도 시각화 및 정보 팝업  
+    - 기술 스택: Python, Streamlit, Folium  
     """)
